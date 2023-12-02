@@ -2,7 +2,7 @@
 fn main() {
     println!("Hello, world!");
     let input = include_str!("../input-prod.txt");
-    println!("sum: {}", part1(input, 12, 13, 14));
+    println!("sum: {}", part2(input));
 }
 
 enum Ball {
@@ -10,9 +10,62 @@ enum Ball {
     Green(u64),
     Blue(u64),
 }
-struct Game {
-    id: u64,
-    balls: Vec<Ball>,
+
+fn part2(input: &str) -> u64 {
+    input
+        .lines()
+        .map(|line| line.split(':').collect::<Vec<&str>>())
+        .map(|items| {
+            let max_balls = items[1]
+                .trim()
+                .split(';')
+                .map(|reveal| {
+                    let balls = reveal
+                        .trim()
+                        .split(',')
+                        .map(|balls_of_single_type| {
+                            let mut items = balls_of_single_type.trim().split(' ');
+                            let count = items.next().unwrap().parse::<u64>().unwrap();
+                            let color = items.next().unwrap();
+                            match color {
+                                "red" => Ball::Red(count),
+                                "blue" => Ball::Blue(count),
+                                "green" => Ball::Green(count),
+                                _ => unreachable!(),
+                            }
+                        })
+                        .collect::<Vec<Ball>>();
+                    balls
+                })
+                .fold(
+                    (0, 0, 0 /*R, G, B*/),
+                    |(max_red, max_green, max_blue), balls| {
+                        let mut to_return = (max_red, max_green, max_blue);
+                        for ball in balls {
+                            match ball {
+                                Ball::Red(count) => {
+                                    if count > max_red {
+                                        to_return.0 = count
+                                    }
+                                }
+                                Ball::Green(count) => {
+                                    if count > max_green {
+                                        to_return.1 = count;
+                                    }
+                                }
+                                Ball::Blue(count) => {
+                                    if count > max_blue {
+                                        to_return.2 = count;
+                                    }
+                                }
+                            }
+                        }
+                        to_return
+                    },
+                );
+            max_balls.0 * max_balls.1 * max_balls.2
+        })
+        .sum()
 }
 
 fn part1(input: &str, max_red: u64, max_green: u64, max_blue: u64) -> u64 {
