@@ -30,51 +30,51 @@ pub fn day2() -> u64 {
     digits_map.insert("seven", 7);
     digits_map.insert("eight", 8);
     digits_map.insert("nine", 9);
+    digits_map.insert("1", 1);
+    digits_map.insert("2", 2);
+    digits_map.insert("3", 3);
+    digits_map.insert("4", 4);
+    digits_map.insert("5", 5);
+    digits_map.insert("6", 6);
+    digits_map.insert("7", 7);
+    digits_map.insert("8", 8);
+    digits_map.insert("9", 9);
 
     let input = include_str!("../input-1.txt");
     let lines: Vec<_> = input.split('\n').collect();
     let mut sum: u64 = 0;
 
     let mut lps: [usize; 1000] = [0; 1000];
-    let mut first_value = 0;
-    let mut last_value = 0;
     for line in lines.iter() {
-        let mut first_digit_index = line
-            .chars()
-            .enumerate()
-            .skip_while(|&(index, ch)| !ch.is_digit(10));
-        let mut last_digit_index = line
-            .chars()
-            .rev()
-            .enumerate()
-            .skip_while(|&(index, ch)| !ch.is_digit(10));
-        let (mut first_digit_index, mut first_digit) = match first_digit_index.next() {
-            Some((index, ch)) => (index, ch.to_digit(10).unwrap()),
-            None => (usize::max_value(), 0),
-        };
-        let (mut last_digit_index, mut last_digit) = match last_digit_index.next() {
-            Some((index, ch)) => (index, ch.to_digit(10).unwrap()),
-            None => (usize::max_value(), 0),
-        };
-        for key in digits_map.keys() {
-            let Some(occurences) = kmp::find_occurences(&line, &key, &mut lps[..]) else {
-                continue;
-            };
-            let n = occurences.indexes.len();
-            let local_min_index = occurences.indexes[0];
-            let local_max_index = occurences.indexes[n - 1];
-            if local_min_index < first_digit_index {
-                first_digit_index = local_min_index;
-                first_digit = *digits_map.get(key).unwrap();
-            }
-            if local_max_index > last_digit_index {
-                last_digit_index = local_max_index;
-                last_digit = *digits_map.get(key).unwrap();
-            }
-        }
-        sum = sum + first_digit as u64 * 10 + last_digit as u64;
+        let val = inner_loop(line, &digits_map, &mut lps[..]);
+        sum += val;
     }
     sum
+}
+
+pub(crate) fn inner_loop(line: &str, digits_map: &HashMap<&str, u32>, lps: &mut [usize]) -> u64 {
+    let mut min_index = usize::max_value();
+    let mut first_digit = 0;
+    let mut last_digit = 0;
+    let mut max_index = usize::min_value();
+
+    for key in digits_map.keys() {
+        let Some(occurences) = kmp::find_occurences(&line, &key, &mut lps[..]) else {
+            continue;
+        };
+        let n = occurences.indexes().len();
+        let local_min_index = occurences.indexes()[0];
+        let local_max_index = occurences.indexes()[n - 1];
+        if local_min_index < min_index {
+            min_index = local_min_index;
+            first_digit = *digits_map.get(key).unwrap();
+        }
+        if local_max_index >= max_index {
+            max_index = local_max_index;
+            last_digit = *digits_map.get(key).unwrap();
+        }
+    }
+    return first_digit as u64 * 10 + last_digit as u64;
 }
 
 pub fn contains_at(input: &str, pattern: &str) -> Option<usize> {

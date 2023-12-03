@@ -53,6 +53,7 @@ fn pattern_match(text: &Vec<char>, pattern: &Vec<char>, lps: &[usize]) -> Option
     }
 }
 
+/// LPS: longest proper suffix.
 fn init_lps(pattern: &Vec<char>, lps: &mut [usize]) {
     let m = pattern.len();
     if m == 1 {
