@@ -19,8 +19,32 @@ func main() {
 	}
 	input := string(content)
 	// fmt.Println(input)
-	fmt.Println(part1(input))
+	fmt.Println(part2(input))
 
+}
+func gcd(a, b uint64) uint64 {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// lcm computes the Least Common Multiple of two numbers.
+func lcm(a, b uint64) uint64 {
+	return a / gcd(a, b) * b // Note: Dividing before multiplying to avoid overflow
+}
+
+// lcmSlice computes the LCM of a slice of uint64.
+func lcmSlice(numbers []uint64) uint64 {
+	if len(numbers) == 0 {
+		return 0
+	}
+
+	result := numbers[0]
+	for _, number := range numbers[1:] {
+		result = lcm(result, number)
+	}
+	return result
 }
 
 func part2(input string) uint64 {
@@ -62,35 +86,37 @@ func part2(input string) uint64 {
 		node.Left = leftNode
 		node.Right = rightNode
 	}
-	var steps uint64 = 0
-	currNodes := nodesThatEndsWithA
-	i := 0
+	// var steps uint64 = 0
 	n := len(directions)
 	fmt.Println("N: ", len(nodesThatEndsWithA))
-	for {
-		if doesAllEndsWithZ(currNodes) {
-			return steps
-		}
-		if i == n {
-			i = 0
-		}
-		direction := directions[i]
-
-		for j := 0; j < len(currNodes); j++ {
-			currNode := currNodes[j]
-			var nextNode *Node
-			if direction == 'R' {
-				nextNode = currNode.Right
-			} else {
-				nextNode = currNode.Left
+	steps := make([]uint64, 0)
+	for _, node := range nodesThatEndsWithA {
+		i := 0
+		counter := 0
+		currNode := node
+		for {
+			if currNode.doesEndsWithZ() {
+				steps = append(steps, uint64(counter))
+				break
 			}
-			currNodes[j] = nextNode
+			if i == n {
+				i = 0
+			}
+			if directions[i] == 'L' {
+				currNode = currNode.Left
+			} else {
+				currNode = currNode.Right
+			}
+			i++
+			counter++
 		}
-		i++
-		steps++
 	}
+	fmt.Println(steps)
+	return lcmSlice(steps)
+}
 
-	return 0
+func (node *Node) doesEndsWithZ() bool {
+	return strings.HasSuffix(node.Name, "Z")
 }
 
 func doesAllEndsWithZ(nodes []*Node) bool {
