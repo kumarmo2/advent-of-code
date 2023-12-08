@@ -23,6 +23,85 @@ func main() {
 
 }
 
+func part2(input string) uint64 {
+	lines := strings.Split(input, "\n")
+	directions := lines[0]
+	nodeLines := lines[2:]
+	mapOfNodes := make(map[string]*Node)
+	nodesThatEndsWithA := make([]*Node, 0)
+
+	for _, nodeLine := range nodeLines {
+		if nodeLine == "" {
+			break
+		}
+
+		items := strings.Split(nodeLine, "=")
+		nodeName := strings.Trim(items[0], " ")
+		node, ok := mapOfNodes[nodeName]
+		if !ok {
+			node = &Node{Name: nodeName}
+			mapOfNodes[nodeName] = node
+		}
+		if strings.HasSuffix(nodeName, "A") {
+			nodesThatEndsWithA = append(nodesThatEndsWithA, node)
+		}
+
+		childNodes := strings.Split(strings.ReplaceAll(strings.ReplaceAll(strings.Trim(items[1], " "), "(", ""), ")", ""), ",") // strings.Trim(items[1], "")
+		left := strings.Trim(childNodes[0], " ")
+		right := strings.Trim(childNodes[1], " ")
+		leftNode, ok := mapOfNodes[left]
+		if !ok {
+			leftNode = &Node{Name: left}
+			mapOfNodes[left] = leftNode
+		}
+		rightNode, ok := mapOfNodes[right]
+		if !ok {
+			rightNode = &Node{Name: right}
+			mapOfNodes[right] = rightNode
+		}
+		node.Left = leftNode
+		node.Right = rightNode
+	}
+	var steps uint64 = 0
+	currNodes := nodesThatEndsWithA
+	i := 0
+	n := len(directions)
+	fmt.Println("N: ", len(nodesThatEndsWithA))
+	for {
+		if doesAllEndsWithZ(currNodes) {
+			return steps
+		}
+		if i == n {
+			i = 0
+		}
+		direction := directions[i]
+
+		for j := 0; j < len(currNodes); j++ {
+			currNode := currNodes[j]
+			var nextNode *Node
+			if direction == 'R' {
+				nextNode = currNode.Right
+			} else {
+				nextNode = currNode.Left
+			}
+			currNodes[j] = nextNode
+		}
+		i++
+		steps++
+	}
+
+	return 0
+}
+
+func doesAllEndsWithZ(nodes []*Node) bool {
+	for _, node := range nodes {
+		if !strings.HasSuffix(node.Name, "Z") {
+			return false
+		}
+	}
+	return true
+}
+
 func part1(input string) uint64 {
 	lines := strings.Split(input, "\n")
 	directions := lines[0]
